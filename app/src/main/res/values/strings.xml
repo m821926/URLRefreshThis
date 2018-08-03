@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name" translatable="false">URL Refresh This</string>
+    <string name="settings">Settings</string>
+    <string name="refresh_every">Refresh every</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="please_enter_url">Please Enter URL</string>
+    <string name="minutes">Minutes</string>
+    <string name="about">About</string>
+    <string name="url_refresh_this_was_written_by_patrik_jacobs_in_2018_no_warranty_will_be_provided">URL Refresh This was written by Patrik Jacobs in 2018. \n\nNo warranty will be provided. \n\nI hope you can make benefit of this application and any suggestions are welcome to m821926@gmail.com.</string>
+</resources>

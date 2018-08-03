@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="about">Acerca de</string>
+    <string name="settings">Configuración</string>
+    <string name="refresh_every">Refrescar cada</string>
+    <string name="save">Guardar</string>
+    <string name="cancel">Cancelar</string>
+    <string name="please_enter_url">Especificar página WEB</string>
+    <string name="minutes">Minutos</string>
+    <string name="url_refresh_this_was_written_by_patrik_jacobs_in_2018_no_warranty_will_be_provided">"URL Refresh This ha sido escrito por Patrik Jacobs en el año 2018. \n\nNo damos garantia ni responsabilidad sobre el uso del programa. \n\nEspero que le sea util y si usted tiene recomendaciones no dude en contactarme en el correo m821926@gmail.com "</string>
+</resources>
