@@ -1,76 +1,76 @@
-package com.pj.urlrefreshthis;
+package com.pj.urlrefreshthis
 
-import android.content.SharedPreferences;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.view.View;
-import android.widget.EditText;
-import android.widget.SeekBar;
-import android.widget.TextView;
+import android.content.Intent
+import android.content.SharedPreferences
+import android.os.Bundle
 
-public class MyPreferencesActivity extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener {
+import android.view.View
+import android.widget.EditText
+import android.widget.SeekBar
+import android.widget.SeekBar.OnSeekBarChangeListener
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import com.pj.urlrefreshthis.Utils.Variables
+import com.pj.urlrefreshthis.databinding.ActivityMyPreferencesBinding
 
-    private SeekBar mySeekBarMinutes;
-    private TextView mytbRefreshMinutes;
-    private EditText mytbURL;
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_my_preferences);
+class MyPreferencesActivity : AppCompatActivity(), OnSeekBarChangeListener {
+
+
+     private lateinit var binding:ActivityMyPreferencesBinding
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding= ActivityMyPreferencesBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         // Define seekbar with minutes
-        mySeekBarMinutes = (SeekBar) findViewById(R.id.seekBarMinutes);
-        mySeekBarMinutes.setOnSeekBarChangeListener( this);
-
-        // Define Text field to show minutes
-        mytbRefreshMinutes = (TextView) findViewById(R.id.tbRefreshMinutes);
-
-        // Define URL field where user can enter web page
-        mytbURL = (EditText) findViewById(R.id.tbURL);
+        binding.seekBarMinutes.setOnSeekBarChangeListener(this)
 
         // Get Saved Preferences
-        SharedPreferences sharedPreferences = getSharedPreferences( getPackageName() + Constants.PREF_FILE_NAME ,MODE_PRIVATE);
-        mytbURL.setText(sharedPreferences.getString(Constants.PREF_URL,"http://"));
-        mySeekBarMinutes.setProgress(sharedPreferences.getInt(Constants.PREF_REFRESH_MINUTES,6)-1); // Reduce 1 to correct value seekbar starts with 0 !!
-
+        val sharedPreferences =
+            getSharedPreferences(packageName + Constants.PREF_FILE_NAME, MODE_PRIVATE)
+        binding.tbURL.setText(sharedPreferences.getString(Constants.PREF_URL, "http://"))
+        binding.showTimer.isChecked = sharedPreferences.getBoolean(Variables.SHARED_PREFERENCES_SHOW_TIMER, true)
+        binding.showTitle.isChecked = sharedPreferences.getBoolean(Variables.SHARED_PREFERENCES_SHOW_TITLE, true)
+        binding.seekBarMinutes.progress =
+            sharedPreferences.getInt(
+                Constants.PREF_REFRESH_MINUTES,
+                6
+            ) - 1 // Reduce 1 to correct value seekbar starts with 0 !!
+        supportActionBar?.hide()
     }
 
-
-    @Override
-    public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-        switch (seekBar.getId())
-        {
-            case R.id.seekBarMinutes:
-                int NewRefreshMinutes = i+1; // add 1 as seekbar lowest number is 0
-                mytbRefreshMinutes.setText( Integer.toString(NewRefreshMinutes) );
-                break;
-            default:
-                break;
+    override fun onProgressChanged(seekBar: SeekBar, i: Int, b: Boolean) {
+        when (seekBar.id) {
+            R.id.seekBarMinutes -> {
+                val NewRefreshMinutes = i + 1 // add 1 as seekbar lowest number is 0
+                binding.tbRefreshMinutes.setText(NewRefreshMinutes.toString())
+            }
+            else -> {
+            }
         }
     }
 
-    @Override
-    public void onStartTrackingTouch(SeekBar seekBar) {
+    override fun onStartTrackingTouch(seekBar: SeekBar) {}
+    override fun onStopTrackingTouch(seekBar: SeekBar) {}
+    fun btnSave(view: View?) {
+        val sharedPreferences =
+            getSharedPreferences(packageName + Constants.PREF_FILE_NAME, MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        editor.putString(Constants.PREF_URL, binding.tbURL.text.toString())
+        editor.putInt(Constants.PREF_REFRESH_MINUTES,binding.tbRefreshMinutes.text.toString().toInt() )
+        editor.putBoolean(Variables.SHARED_PREFERENCES_SHOW_TIMER,binding.showTimer.isChecked)
+        editor.putBoolean(Variables.SHARED_PREFERENCES_SHOW_TITLE,binding.showTitle.isChecked)
+        editor.apply()
+        // return value to calling activity
+        val intent = Intent()
+//        intent.putExtra(Variables.KEY_DESCRIPTION, description.description)
+        setResult(RESULT_OK, intent)
 
+        finish()
     }
 
-    @Override
-    public void onStopTrackingTouch(SeekBar seekBar) {
-
-    }
-
-    public void btnSave(View view) {
-        SharedPreferences sharedPreferences = getSharedPreferences( getPackageName() + Constants.PREF_FILE_NAME ,MODE_PRIVATE);
-
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString(Constants.PREF_URL, mytbURL.getText().toString());
-        editor.putInt(Constants.PREF_REFRESH_MINUTES, Integer.parseInt( (String) mytbRefreshMinutes.getText() ) );
-        editor.apply();
-
-        finish();
-    }
-
-    public void btnCancel(View view) {
-        finish();
+    fun btnCancel(view: View?) {
+        finish()
     }
 }

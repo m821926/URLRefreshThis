@@ -1,174 +1,209 @@
-package com.pj.urlrefreshthis;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.View;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
-import android.widget.ProgressBar;
+package com.pj.urlrefreshthis
 
-import java.util.Timer;
-import java.util.TimerTask;
+import android.app.Activity
+import android.content.Intent
+import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import androidx.appcompat.app.AppCompatActivity
+import com.pj.urlrefreshthis.Utils.Variables
+import com.pj.urlrefreshthis.databinding.ActivityMainBinding
+import java.util.*
 
-public class MainActivity extends AppCompatActivity {
+class MainActivity : AppCompatActivity(), View.OnClickListener {
 
-    private String myURL;
-    private int myRefreshMinutes;
-    private ProgressBar myProgressBar;
-    private WebView myWebView;
-    private Timer TimerWebViewRefresh;
+    private lateinit var binding: ActivityMainBinding
+    private var showTitle=true
+    private var showTimer=true
+    private var myURL = ""
+    private var myRefreshMinutes = 0
+    private var TimerWebViewRefresh: Timer? = null
+    private var progresBarTimer:Timer?=null
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding= ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        binding.floatingActionButton.setOnClickListener(this)
 
-       myWebView = (WebView) findViewById(R.id.myWebView);
         //  this fixes size based on screen size.
-        WebSettings webSettings = myWebView.getSettings();
-        webSettings.setJavaScriptEnabled(true);
-        webSettings.setDomStorageEnabled(true);
-        webSettings.setLoadWithOverviewMode(true);
-        webSettings.setUseWideViewPort(true);
-        webSettings.setBuiltInZoomControls(true);
-        webSettings.setDisplayZoomControls(false);
-        webSettings.setSupportZoom(true);
-        webSettings.setDefaultTextEncodingName("utf-8");
+        val webSettings = binding.myWebView.settings
+        webSettings.javaScriptEnabled = true
+        webSettings.domStorageEnabled = true
+        webSettings.loadWithOverviewMode = true
+        webSettings.useWideViewPort = true
+        webSettings.builtInZoomControls = true
+        webSettings.displayZoomControls = false
+        webSettings.setSupportZoom(true)
+        webSettings.defaultTextEncodingName = "utf-8"
 
-
-
-
-        myProgressBar = (ProgressBar) findViewById(R.id.progressBar);
-
-        myWebView.setWebViewClient(new WebViewClient(){
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url){
-                view.loadUrl(url);
-                return true;
+        binding.myWebView.webViewClient = object : WebViewClient() {
+            override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
+                view.loadUrl(url)
+                return true
             }
-        });
+        }
+        Get_SharedPreferences()
+        Configure_ProgressBar()
+        Configure_WebView()
+        configureTitle()
 
-        Get_SharedPreferences();
-        Configure_ProgressBar();
-
-        Configure_WebView();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        Get_SharedPreferences();
-        //myWebView.loadUrl(myURL);
-
-        // Reconfigure Progressbar
-        myProgressBar.setMax(myRefreshMinutes * 60);
-        myProgressBar.setProgress(0);
-
-        TimerWebViewRefresh.cancel();
-
-        Configure_WebView();
 
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.main_menu, menu);
-        return true;
+    override fun onResumeFragments() {
+    }
+    private fun configureTitle() {
+        if (showTitle) {
+            supportActionBar?.title=myURL
+            supportActionBar?.show()
+            binding.floatingActionButton.visibility=View.GONE
+        } else {
+            supportActionBar?.hide()
+            binding.floatingActionButton.visibility=View.VISIBLE
+        }
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    override fun onResume() {
+        super.onResume()
+         // Reconfigure Progressbar
+//        binding.progressBar!!.max = myRefreshMinutes * 60
+//        binding.progressBar!!.progress = 0
+//        TimerWebViewRefresh!!.cancel()
+
+
+        Get_SharedPreferences()
+//        Configure_ProgressBar()
+//        Configure_WebView()
+//        configureTitle()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        val inflater = menuInflater
+        inflater.inflate(R.menu.main_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
         // Handle item selection
-        switch (item.getItemId()) {
-            case R.id.action_settings:
-                GoToPreferences();
-                return true;
-            case R.id.action_about:
-                GoToAbout();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+        return when (item.itemId) {
+            R.id.action_settings -> {
+                GoToPreferences()
+                true
+            }
+            R.id.action_about -> {
+                GoToAbout()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
         }
     }
 
-    private void Get_SharedPreferences() {
-        SharedPreferences sharedPreferences = getSharedPreferences( getPackageName() + Constants.PREF_FILE_NAME ,MODE_PRIVATE);
-        myURL = sharedPreferences.getString(Constants.PREF_URL,Constants.NOT_APLICABLE);
-        myRefreshMinutes = sharedPreferences.getInt(Constants.PREF_REFRESH_MINUTES, 5);
+    private fun Get_SharedPreferences() {
+        val sharedPreferences =
+            getSharedPreferences(packageName + Constants.PREF_FILE_NAME, MODE_PRIVATE)
+        myURL = sharedPreferences.getString(Constants.PREF_URL, Constants.NOT_APLICABLE)!!
+        myRefreshMinutes = sharedPreferences.getInt(Constants.PREF_REFRESH_MINUTES, 5)
+        showTimer=sharedPreferences.getBoolean(Variables.SHARED_PREFERENCES_SHOW_TIMER,true)
+        showTitle=sharedPreferences.getBoolean(Variables.SHARED_PREFERENCES_SHOW_TITLE,true)
+
         // If the Preference settings are not defined then redirect the user to the preferences screen
-        if( myURL.equals(Constants.NOT_APLICABLE) ) {
-            GoToPreferences();
+        if (myURL == Constants.NOT_APLICABLE) {
+            GoToPreferences()
         }
     }
 
-    private void Configure_WebView() {
+    private fun Configure_WebView() {
         // MyTimerTask myTask = new MyTimerTask();
-        TimerTask myTask = new TimerTask() {
-            @Override
-            public void run() {
-                MainActivity.this.runOnUiThread(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        myWebView.loadUrl(myURL);
-                        myProgressBar.setProgress(0);
-
-                    }
-
-                });
+        val myTask: TimerTask = object : TimerTask() {
+            override fun run() {
+                runOnUiThread {
+                    binding.myWebView.loadUrl(myURL)
+                    binding.progressBar.progress = 0
+                }
             }
-        };
-
-        TimerWebViewRefresh = new Timer();
-
-        TimerWebViewRefresh.scheduleAtFixedRate(myTask,0, myRefreshMinutes * 60000 );
+        }
+        TimerWebViewRefresh = Timer()
+        TimerWebViewRefresh!!.scheduleAtFixedRate(myTask, 0, (myRefreshMinutes * 60000).toLong())
     }
 
-    private void Configure_ProgressBar() {
+    private fun Configure_ProgressBar() {
+        TimerWebViewRefresh?.cancel()
+        TimerWebViewRefresh?.purge()
+        TimerWebViewRefresh=null
+        progresBarTimer?.cancel()
+        progresBarTimer?.purge()
+        progresBarTimer=null
+
         // Start Progressbar to start counting
-        myProgressBar.setMax(myRefreshMinutes * 60);
-        TimerTask ProgressBarTask = new TimerTask() {
-            @Override
-            public void run() {
-                MainActivity.this.runOnUiThread(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        myProgressBar.incrementProgressBy(1);
-
-                    }
-
-                });
+        binding.progressBar.max = myRefreshMinutes * 60
+        val ProgressBarTask: TimerTask = object : TimerTask() {
+            override fun run() {
+                runOnUiThread { binding.progressBar.incrementProgressBy(1) }
             }
-        };
-        Timer ProgresBarTimer = new Timer();
+        }
+        progresBarTimer = Timer()
+        progresBarTimer!!.scheduleAtFixedRate(ProgressBarTask, 1000, 1000)
 
-        ProgresBarTimer.scheduleAtFixedRate(ProgressBarTask,1000, 1000 );
+        if(showTimer) {
+            binding.progressBar.visibility = View.VISIBLE
+        }
+        else{
+            binding.progressBar.visibility = View.INVISIBLE
+        }
     }
 
-    public void onClick_Preferences(View view) {
-        GoToPreferences();
+    fun onClick_Preferences(view: View?) {
+        GoToPreferences()
     }
 
-    private void GoToPreferences() {
-        Intent intent = new Intent(this, MyPreferencesActivity.class);
-        startActivity(intent);
+    private fun GoToPreferences() {
+        val intent = Intent(this, MyPreferencesActivity::class.java)
+        startActivityForResult(intent, Variables.PREFERENCES_RESULT)
     }
 
-    private void GoToAbout() {
-        Intent intent = new Intent(this, AboutActivity.class);
-        startActivity(intent);
+    private fun GoToAbout() {
+        val intent = Intent(this, AboutActivity::class.java)
+        startActivity(intent)
+
     }
 
-    public void onClick_FloatingActionButton(View view) {
-        GoToPreferences();
+    fun onClick_FloatingActionButton(view: View?) {
+        GoToPreferences()
     }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == Activity.RESULT_OK) {
+            when (requestCode) {
+
+                Variables.PREFERENCES_RESULT -> {
+                    Get_SharedPreferences()
+                    Configure_ProgressBar()
+                    Configure_WebView()
+                    configureTitle()
+                }
+                else ->{
+                    Get_SharedPreferences()
+                    Configure_ProgressBar()
+                    Configure_WebView()
+                    configureTitle()
+                }
+             }
+        }
+    }
+    override fun onClick(view: View?) {
+        if (view != null) {
+            when(view.id){
+                R.id.floatingActionButton->{
+                    GoToPreferences()
+                }
+            }
+        }
+    }
+
 }
