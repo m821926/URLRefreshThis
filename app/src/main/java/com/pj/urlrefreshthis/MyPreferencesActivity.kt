@@ -13,7 +13,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.pj.urlrefreshthis.Utils.Variables
 import com.pj.urlrefreshthis.databinding.ActivityMyPreferencesBinding
 
-class MyPreferencesActivity : AppCompatActivity(), OnSeekBarChangeListener {
+class MyPreferencesActivity : AppCompatActivity(), OnSeekBarChangeListener, View.OnClickListener {
 
 
      private lateinit var binding:ActivityMyPreferencesBinding
@@ -25,6 +25,9 @@ class MyPreferencesActivity : AppCompatActivity(), OnSeekBarChangeListener {
 
         // Define seekbar with minutes
         binding.seekBarMinutes.setOnSeekBarChangeListener(this)
+
+        binding.increaseMinute.setOnClickListener(this)
+        binding.reduceMinute.setOnClickListener(this)
 
         // Get Saved Preferences
         val sharedPreferences =
@@ -72,5 +75,18 @@ class MyPreferencesActivity : AppCompatActivity(), OnSeekBarChangeListener {
 
     fun btnCancel(view: View?) {
         finish()
+    }
+
+    override fun onClick(v: View?) {
+        if (v != null) {
+            when(v.id){
+                R.id.increaseMinute->{
+                    binding.seekBarMinutes.progress++
+                }
+                R.id.reduceMinute->{
+                    binding.seekBarMinutes.progress--
+                }
+            }
+        }
     }
 }
