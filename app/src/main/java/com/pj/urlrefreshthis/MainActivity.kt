@@ -2,6 +2,7 @@ package com.pj.urlrefreshthis
 
 import android.app.Activity
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -22,6 +23,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     private var myRefreshMinutes = 0
     private var TimerWebViewRefresh: Timer? = null
     private var progresBarTimer:Timer?=null
+    private var newX=0f
+    private var newY=0f
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,17 +73,48 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     override fun onResume() {
         super.onResume()
-         // Reconfigure Progressbar
-//        binding.progressBar!!.max = myRefreshMinutes * 60
-//        binding.progressBar!!.progress = 0
-//        TimerWebViewRefresh!!.cancel()
-
-
         Get_SharedPreferences()
-//        Configure_ProgressBar()
-//        Configure_WebView()
-//        configureTitle()
+        setFloatingButtonPosition()
     }
+
+    override fun onPause() {
+        super.onPause()
+
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        saveFloatingActionButtonPosition()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        setFloatingButtonPosition()
+    }
+
+    private fun saveFloatingActionButtonPosition() {
+        val sharedPreferences =
+            getSharedPreferences(packageName + Constants.PREF_FILE_NAME, MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        val value = this.getResources().getConfiguration().orientation;
+        if (value == Configuration.ORIENTATION_PORTRAIT) {
+            editor.putFloat(Variables.SHARED_PREFERENCES_FLOATING_BUTTON_Y_PORTRAIT,
+                binding.floatingActionButton.posX)
+            editor.putFloat(Variables.SHARED_PREFERENCES_FLOATING_BUTTON_Y_PORTRAIT,
+                binding.floatingActionButton.posY
+            )
+        }
+        else{
+            editor.putFloat(Variables.SHARED_PREFERENCES_FLOATING_BUTTON_Y_LANDSCAPE,
+                binding.floatingActionButton.posX)
+            editor.putFloat(Variables.SHARED_PREFERENCES_FLOATING_BUTTON_Y_LANDSCAPE,
+                binding.floatingActionButton.posY
+            )
+        }
+
+        editor.apply()
+    }
+
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         val inflater = menuInflater
@@ -111,12 +145,25 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         showTimer=sharedPreferences.getBoolean(Variables.SHARED_PREFERENCES_SHOW_TIMER,true)
         showTitle=sharedPreferences.getBoolean(Variables.SHARED_PREFERENCES_SHOW_TITLE,true)
 
+        val value = this.getResources().getConfiguration().orientation;
+        if (value == Configuration.ORIENTATION_PORTRAIT) {
+            newX = sharedPreferences.getFloat(Variables.SHARED_PREFERENCES_FLOATING_BUTTON_X_PORTRAIT, 0f)
+            newY = sharedPreferences.getFloat(Variables.SHARED_PREFERENCES_FLOATING_BUTTON_Y_PORTRAIT, 0f)
+        }
+        else{
+            newX = sharedPreferences.getFloat(Variables.SHARED_PREFERENCES_FLOATING_BUTTON_X_LANDSCAPE, 0f)
+            newY = sharedPreferences.getFloat(Variables.SHARED_PREFERENCES_FLOATING_BUTTON_Y_LANDSCAPE, 0f)
+        }
         // If the Preference settings are not defined then redirect the user to the preferences screen
         if (myURL == Constants.NOT_APLICABLE) {
             GoToPreferences()
         }
     }
 
+    fun setFloatingButtonPosition()
+    {
+      //      binding.floatingActionButton.setPosition(newX,newY)
+    }
     private fun Configure_WebView() {
         // MyTimerTask myTask = new MyTimerTask();
         val myTask: TimerTask = object : TimerTask() {
@@ -162,6 +209,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     }
 
     private fun GoToPreferences() {
+        saveFloatingActionButtonPosition()
+
         val intent = Intent(this, MyPreferencesActivity::class.java)
         startActivityForResult(intent, Variables.PREFERENCES_RESULT)
     }
